@@ -85,3 +85,20 @@ P_sim.InputName = { 'V( m/s)' };
 P_sim.OutputName = [G.OutputName; G.InputName];
 step(P_sim)
 
+I2 = eye(2);                         % 2x2 identity matrix
+L = G_sim * C_block;                 % open-loop transfer matrix L = GK
+
+S = feedback(I2, L);                 % S = inv(I + GK)
+T = I2 - S;                          % T = GK*(I+GK)^-1
+
+%% Plot magnitude of S and T
+w = logspace(-3, 3, 500);
+
+figure;
+subplot(2,1,1)
+bodemag(S, w), grid on
+title('Sensitivity S(s)')
+
+subplot(2,1,2)
+bodemag(T, w), grid on
+title('Complementary Sensitivity T(s)')
