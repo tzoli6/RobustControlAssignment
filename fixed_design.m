@@ -2,11 +2,11 @@ load("Assignment_Data_SC42145_2025.mat")
 
 sys = ss(A, B, C, D);
 
-Gmimo = tf(sys);
+FWT = tf(sys);
 
 s = tf("s");
 
-Gmimo = Gmimo(:, 1:2);
+Gmimo = FWT(:, 1:2);
 % Find out if if the distrubance input has to be there for the design
 
 
@@ -51,6 +51,37 @@ full_plant = connect(Gmimo, Wp, Wu, C_block, sum1, sum2, ...
 opt = hinfstructOptions('Display', 'final', 'RandomStart', 5);
 N_siso = hinfstruct (full_plant, opt);
 
-Kp_opt = N_siso.Blocks.Kp.Value
-Kd_opt = N_siso.Blocks.Kd.Value
-Tf_opt = N_siso.Blocks.Tf.Value
+Kp_opt = N_siso.Blocks.Kp.Value;
+Kd_opt = N_siso.Blocks.Kd.Value;
+Tf_opt = N_siso.Blocks.Tf.Value;
+
+c1 = Kp_opt(1) + (Kd_opt(1) * s)/(Tf_opt(1)*s + 1);
+c2 = Kp_opt(2) + (Kd_opt(2) * s)/(Tf_opt(2)*s + 1);
+c3 = Kp_opt(3) + (Kd_opt(3) * s)/(Tf_opt(3)*s + 1);
+c4 = Kp_opt(4) + (Kd_opt(4) * s)/(Tf_opt(4)*s + 1);
+
+C_block = [c1 c2; c3 c4];
+
+
+% Contstruct CL for simulation
+G_sim = FWT(:, 1:2);
+G_sim.u = 'u';
+G_sim.y = 'y_plant';
+
+K_sim = C_block;
+K_sim.u = 'y_meas';
+K_sim.y = 'u';
+
+Gd_sim = FWT(: ,3) ;
+Gd_sim.u = 'V';
+Gd_sim.y = 'y_dist';
+
+Sum_sim = sumblk('y_meas = y_plant + y_dist' , 2);
+P_sim = connect ( G_sim, K_sim, Gd_sim, Sum_sim, ...
+    { 'V' }, ...
+    { 'y_meas', 'u' });
+
+P_sim.InputName = { 'V( m/s)' };
+P_sim.OutputName = [G.OutputName; G.InputName];
+step(P_sim)
+
