@@ -15,7 +15,7 @@ Ki = realp('Ki', ones(1, 4));
 Kd = realp('Kd', ones(1, 4));
 Tf = realp('Tf', ones(1, 4));
 
-Wp = [1/s 0; 0 0.1];
+Wp = [(s/2.4 + 1.885)/(s+1.885*10^-4) 0; 0 0.1]
 Wp.u = {'e1', 'e2'};
 Wp.y = {'z1_1', 'z1_2'};
 
@@ -25,12 +25,12 @@ Wu.u = {'u1', 'u2'};
 Wu.y = {'z2_1', 'z2_2'};
 
 
-c1 = Kp(1) + Ki(1) / s + (Kd(1) * s) /( Tf(1) * s + 1);
-c2 = Kp(2) + Ki(2) / s + (Kd(2) * s) /( Tf(2) * s + 1);
-c3 = Kp(3) + Ki(3) / s + (Kd(3) * s) /( Tf(3) * s + 1);
-c4 = Kp(4) + Ki(4) / s + (Kd(4) * s) /( Tf(4) * s + 1);
+c1 = Kp(1) +  (Kd(1) * s)/( Tf(1) * s + 1);
+c2 = Kp(2) +  (Kd(2) * s)/( Tf(2) * s + 1);
+c3 = Kp(3) +  (Kd(3) * s)/( Tf(3) * s + 1);
+c4 = Kp(4) +  (Kd(4) * s)/( Tf(4) * s + 1);
 
-C_block = [c1 0; 0, c4];
+C_block = [c1 c2; c3 c4];
 C_block.Blocks
 
 Gmimo = -1.*Gmimo;
@@ -51,7 +51,6 @@ full_plant = connect(Gmimo, Wp, Wu, C_block, sum1, sum2, ...
 opt = hinfstructOptions('Display', 'final', 'RandomStart', 5);
 N_siso = hinfstruct (full_plant, opt);
 
-Kp_opt = N_siso.Blocks.Kp.Value;
-Ki_opt = N_siso.Blocks.Ki.Value;
-Kd_opt = N_siso.Blocks.Kd.Value;
-Tf_opt = N_siso.Blocks.Tf.Value;
+Kp_opt = N_siso.Blocks.Kp.Value
+Kd_opt = N_siso.Blocks.Kd.Value
+Tf_opt = N_siso.Blocks.Tf.Value
